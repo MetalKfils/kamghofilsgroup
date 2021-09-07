@@ -1,52 +1,41 @@
 <?php
-  
-  // Replace reelkamghofils@gmail.com with your real receiving email address
+  /**
+  * Requires the "PHP Email Form" library
+  * The "PHP Email Form" library is available only in the pro version of the template
+  * The library should be uploaded to: vendor/php-email-form/php-email-form.php
+  * For more info and help: https://bootstrapmade.com/php-email-form/
+  */
 
-  $receiving_email_address = 'reelkamghofils@gmail.com';
-  $errors = array();
+  // Replace contact@example.com with your real receiving email address
+  $receiving_email_address = 'contact@example.com';
 
-  function validatePost($post_key, $min_lenght, $max_lenght)
-  {
-    global $errors;
-    if (isset($_POST[$post_key]) && !empty($_POST[$post_key])) {
-      if (strlen($_POST[$post_key]) > $min_lenght && strlen($_POST[$post_key]) < $max_lenght) {
-         return htmlspecialchars($_POST[$post_key]);
-      } else {
-        $errors[$post_key] = 'La taille du ' . $post_key . ' doit etre entre ' . $min_lenght . ' et ' . $max_lenght;
-      }
-    } else {
-        $errors[$post_key] = 'Vous devez remplire le champ ' . $post_key;
-    }
-  }
-
-  $name = validatePost('name', 2, 30);
-  $subject = validatePost('subject', 5, 100);
-  $message = validatePost('message', 5, 10000);
-
-  if (isset($_POST['email']) && !empty($_POST['email'])) {
-    if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-      $email = htmlspecialchars($_POST['email']);
-    } else {
-      $errors['email'] = 'Syntase de l\'email incorette';
-    }
+  if( file_exists($php_email_form = '../assets/vendor/php-email-form/php-email-form.php' )) {
+    include( $php_email_form );
   } else {
-    $errors['email'] = 'Vous devez remplire le champ email';
+    die( 'Unable to load the "PHP Email Form" Library!');
   }
 
+  $contact = new PHP_Email_Form;
+  $contact->ajax = true;
+  
+  $contact->to = $receiving_email_address;
+  $contact->from_name = $_POST['name'];
+  $contact->from_email = $_POST['email'];
+  $contact->subject = $_POST['subject'];
 
-if (empty($errors)) {
+  // Uncomment below code if you want to use SMTP to send emails. You need to enter your correct SMTP credentials
+  /*
+  $contact->smtp = array(
+    'host' => 'example.com',
+    'username' => 'example',
+    'password' => 'pass',
+    'port' => '587'
+  );
+  */
 
-    $message =
-        'Email: ' . $email .
-        ' | Nom: ' .  $name .
-        ' | Message: ' . $message;
+  $contact->add_message( $_POST['name'], 'From');
+  $contact->add_message( $_POST['email'], 'Email');
+  $contact->add_message( $_POST['message'], 'Message', 10);
 
-    if (mail($receiving_email_address,  $subject,  $message)) {
-
-        die('Message envoyer');
-    } else {
-
-        die('Erreur inconnue');
-    }
-}
+  echo $contact->send();
 ?>
